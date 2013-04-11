@@ -1,0 +1,107 @@
+package com.renren.tailor.schedule;
+
+import java.util.Date;
+import java.util.Map;
+
+import org.quartz.CronScheduleBuilder;
+import org.quartz.Job;
+import org.quartz.JobBuilder;
+import org.quartz.JobDetail;
+import org.quartz.JobKey;
+import org.quartz.Scheduler;
+import org.quartz.SchedulerException;
+import org.quartz.SchedulerFactory;
+import org.quartz.Trigger;
+import org.quartz.TriggerBuilder;
+import org.quartz.core.jmx.JobDataMapSupport;
+import org.quartz.impl.StdSchedulerFactory;
+import org.quartz.SimpleScheduleBuilder;
+
+public class QuartzManager {
+
+	private static final SchedulerFactory schedulerFactory=new StdSchedulerFactory();
+	
+	private static final MRJobListener mrJobListener=new MRJobListener("myjoblistener");
+	
+	private static  Scheduler schedule=null;
+	
+	
+	static{
+		try {
+			schedule=schedulerFactory.getScheduler();
+			schedule.start();
+		} catch (SchedulerException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	
+	public static void scheduleJob(JobDetail job,Trigger trigger){
+		try {
+			schedule.scheduleJob(job, trigger);
+			schedule.getListenerManager().addJobListener(mrJobListener);
+		} catch (SchedulerException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public static void shutdownJobs(){
+		try {
+			if(!schedule.isShutdown()){
+				schedule.shutdown();
+			}
+		} catch (SchedulerException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public static void scheduleCronJob(Class<? extends Job> jobClass,String jobKey,Map<String, Object> maps,String cron,Date startTime){
+		JobDetail job=createJob(jobClass, jobKey, maps);
+		Trigger trigger=null;
+		if(cron.matches("[0-9]+")){
+			trigger=createSimpleTrigger( Integer.parseInt(cron), startTime);
+		}else{
+			trigger=createCronTrigger( cron, startTime);
+		}
+		scheduleJob(job, trigger);
+	}
+	
+	public static void scheduleOnceJob(Class<? extends Job> jobClass,String jobKey,Map<String, Object> maps){
+		JobDetail job=createJob(jobClass, jobKey, maps);
+		Trigger trigger=TriggerBuilder.newTrigger()
+		.startNow().withSchedule(SimpleScheduleBuilder.simpleSchedule().withMisfireHandlingInstructionIgnoreMisfires()).build();
+		scheduleJob(job, trigger);
+	}
+	
+	public static JobDetail createJob(Class<? extends Job> jobClass,String jobKey,Map<String, Object> maps){
+		JobDetail job=JobBuilder.newJob(jobClass).
+		usingJobData(JobDataMapSupport.newJobDataMap(maps)).build();
+		return job;
+	}
+	
+	public static void deleteJob(String jobKey) throws SchedulerException{
+		schedule.deleteJob(new JobKey(jobKey));
+	}
+	
+	public static Trigger createSimpleTrigger(int intervalInMinutes,Date startTime){
+		Trigger trigger=null;
+		if(startTime==null){
+			 trigger=TriggerBuilder.newTrigger()
+				.withSchedule(SimpleScheduleBuilder.simpleSchedule()
+						.withIntervalInMinutes(intervalInMinutes).withMisfireHandlingInstructionIgnoreMisfires()).build();
+		}else{
+			 trigger=TriggerBuilder.newTrigger()
+			.startAt(startTime).withSchedule(SimpleScheduleBuilder.simpleSchedule()
+					.withIntervalInMinutes(intervalInMinutes).withMisfireHandlingInstructionIgnoreMisfires()).build();
+		}
+		return trigger;
+	}
+	
+	public static Trigger createCronTrigger(String cron,Date startTime){
+		Trigger trigger=TriggerBuilder.newTrigger()
+		.startAt(startTime).withSchedule(CronScheduleBuilder.cronSchedule(cron).withMisfireHandlingInstructionIgnoreMisfires()).build();
+		return trigger;
+	}
+	
+	
+}
