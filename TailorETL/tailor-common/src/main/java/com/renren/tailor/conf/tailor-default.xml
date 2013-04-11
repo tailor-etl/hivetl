@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<configuration>
+
+<property>
+  <name>tailor.twi.listen.host</name>
+  <value>192.168.0.118</value>
+  <description>This is the host address the twi Web Interface will listen on</description>
+</property>
+
+<property>
+  <name>tailor.twi.listen.port</name>
+  <value>9999</value>
+  <description>This is the port the twi Web Interface will listen on</description>
+</property>
+
+<property>
+  <name>tailor.twi.war.file</name>
+  <value>lib/hive-hwi-0.8.1.war</value>
+  <description>This is the WAR file with the jsp content for twi Web Interface</description>
+</property>
+
+</configuration>
