@@ -1,0 +1,94 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>hive-privilege</groupId>
+  <artifactId>hive-privilege</artifactId>
+  <version>1.0</version>
+  
+	<dependencies>
+	
+	<dependency>
+  <groupId>org.apache.hive</groupId>
+  <artifactId>hive-exec</artifactId>
+  <version>0.8.0</version>
+  <exclusions>
+   <exclusion>
+    <groupId>org.apache.hadoop</groupId>
+    <artifactId>hadoop-core</artifactId>
+   </exclusion>
+    <exclusion>
+    <groupId>javax.jdo</groupId>
+    <artifactId>jdo2-api</artifactId>
+   </exclusion>
+  </exclusions>
+</dependency>
+	
+	
+		<dependency>
+			<groupId>org.apache.hadoop.hive</groupId>
+			<artifactId>hive-common</artifactId>
+			<version>0.8.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.hadoop.hive</groupId>
+			<artifactId>hive-metastore</artifactId>
+			<version>0.8.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.hadoop.hive</groupId>
+			<artifactId>hive-jdbc</artifactId>
+			<version>0.8.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.facebook</groupId>
+			<artifactId>thrift-fb303</artifactId>
+			<version>0.5.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.facebook</groupId>
+			<artifactId>thrift</artifactId>
+			<version>0.5</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.hadoop.hive</groupId>
+			<artifactId>hive_serde</artifactId>
+			<version>0.8.0-SNAPSHOT</version>
+		</dependency>
+
+
+		<dependency>
+			<groupId>org.apache.hadoop.hive</groupId>
+			<artifactId>hive-service</artifactId>
+			<version>0.8.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>genome</groupId>
+			<artifactId>ge-utils</artifactId>
+			<version>1.0.0-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>1.5.8</version>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-log4j12</artifactId>
+			<version>1.5.8</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.hadoop</groupId>
+			<artifactId>hadoop-hdfs</artifactId>
+			<version>0.21.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.hadoop</groupId>
+			<artifactId>hadoop-mapred</artifactId>
+			<version>0.21.0</version>
+		</dependency>
+	</dependencies>
+
+  
+</project>

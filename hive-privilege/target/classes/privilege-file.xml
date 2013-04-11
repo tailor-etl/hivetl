@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Privilege version="1" tmptablename="temp_" update_interval="120" valid="true" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <Groups>
+  	  <Group name="selectgroup">
+  	  	 <user>xianbing.liu</user>
+  	  	 <user>dp</user>
+  	 	</Group>
+  </Groups>
+	<Database name="default">
+			<Table name="renren_product">
+			<Select>
+			    <group>selectgroup</group>
+			</Select>
+			<Drop>
+				<user>dp</user>
+			</Drop>
+			<Alter>
+				<user>xianbing.liu</user>
+			</Alter>
+		</Table>
+		<Create>
+			 <user>xianbing.liu</user>
+		</Create>
+	</Database>
+	<Database name="tmpbaselxb">
+		<Table name="tmpff">
+			<Select>
+				<user>dp</user>
+			</Select>
+			<Drop>
+				  <group>selectgroup</group>
+			</Drop>
+			<Alter>
+				<user>xianbing.liu</user>
+			</Alter>
+		</Table>
+		<Create>
+			 <user>dp</user>
+		</Create>
+	</Database>
+
+
+</Privilege>
