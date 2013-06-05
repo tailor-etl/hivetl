@@ -22,6 +22,7 @@ import com.renren.tailor.model.JobInfo;
 import com.renren.tailor.model.RuleEngine;
 import com.renren.tailor.util.JaskSonUtil;
 import com.renren.tailor.util.ParameterUtil;
+import com.renren.tailor.util.TailorUtil;
 import com.renren.tailor.util.TimeUtil;
 
 public class MRJobListener extends JobListenerSupport {
@@ -45,13 +46,34 @@ public class MRJobListener extends JobListenerSupport {
 		RuleEngine rule = (RuleEngine) map.get(ParameterUtil.RULE);
 		logger.info("jobExecutionVetoed...tableName:" + rule.getTableName()
 				+ ";partitions:" + rule.getPartitions().toString());
-		if (map.get(ParameterUtil.PATH_ERROR) != null
-				&& (Integer) map.get(ParameterUtil.PATH_ERROR) == ParameterUtil.ErrorCode.INPUT_PATH_NOTEXIST
-				&& rule.getCron().length() > 3) {
-			JobInfo info = (JobInfo) map.get(ParameterUtil.JOB_INFO);
+		JobInfo info =null;
+		if(null!=map.get(ParameterUtil.JOB_INFO)){
+			info = (JobInfo) map.get(ParameterUtil.JOB_INFO);
+		}
+		if (ParameterUtil.ErrorCode.INPUT_PATH_NOTEXIST==(Integer) map.get(ParameterUtil.PATH_ERROR)  
+				&& rule.getCron().length() > 3 && null!=info) {
 			info.setEndTime(TimeUtil.formatFromUtcTime(new Date().getTime() + "",
 					null));
 			DataPersisManager.saveJobInfo(info);
+		}
+		
+		if(ParameterUtil.ErrorCode.OUTPUT_PATH_EXIST==(Integer) map.get(ParameterUtil.PATH_ERROR)){//输出路径存在
+			try{
+				List<Map<String, String>> listMap=TailorUtil.getFailedTask(HiveMetaStore.getPatchPartitions(rule));
+				if(listMap.size()>0){
+					for(Map<String, String> m:listMap){
+						if(m.toString().equals(rule.getPartitions().toString())){
+							int result=HiveMetaStore.alterTable(rule);
+							if(null!=info){
+								info.setResult(result);
+								DataPersisManager.saveJobInfo(info);
+							}
+							break;
+						}
+					}
+				}
+			}catch (Exception e) {
+			}
 		}
 	}
 
@@ -118,6 +140,8 @@ public class MRJobListener extends JobListenerSupport {
 		Map<String,String> partitionMap=engine.getPartitions();
 		info.setPartitions(partitionMap);
 		if (result == 0) {
+			logger.info("result is:"+result);
+			result=HiveMetaStore.alterTable(engine);
 //			Iterator<Entry<String, String>> it = partitionMap.entrySet()
 //					.iterator();
 //			String sql = "alter table " + engine.getTableName()
@@ -130,14 +154,16 @@ public class MRJobListener extends JobListenerSupport {
 //			}
 //			sql = sql.substring(0, sql.length() - 1);
 //			String location = "";
-//			for (String s : list) {
-//				location += s + "/";
+//			if(engine.getFieldRule()!=null && engine.getFieldRule().size()>0){
+//				for (String s : list) {
+//					location += s + "/";
+//				}
+//				location = location.substring(0, location.length() - 1);
 //			}
-//			location = location.substring(0, location.length() - 1);
 //			sql += ") location '" + engine.getOutputPath() + location + "'";
 //			logger.info(sql);
 //			try {
-//				HiveMetaStore.alterPartition(sql);
+//				HiveMetaStore.alterPartition(sql,engine.getDbName());
 //			} catch (SQLException e) {
 //				e.printStackTrace();
 //				logger.error(e.getMessage() + " alter table error " + sql);

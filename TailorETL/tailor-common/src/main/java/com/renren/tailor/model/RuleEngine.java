@@ -19,18 +19,21 @@ public class RuleEngine implements Serializable {
 
 	private String cron;//任务执行的时间表达式 如果cron为数字类型 那么就是轮询某个目录
 	private String name;//规则名字
-	private String inputPath;//输入路径,多个以逗号分割
+	private String inputPath;//输入路径,多个以逗号分割  如果为null，那么直接入hive
 	private String outputPath;//输出路径
 	private String split;//原始文件字段分割字符
 	private String createTime;//规则文件创建时间
-	private String reduceNum;//设置reduce数量
-	private boolean isLocal;//文件是否是本地
+	private int reduceNum=10;//设置reduce数量
+	private boolean isLocal=false;//文件是否是本地
 	private Map<String, List<String>> globalRules;//针对原始数据一行进行转换
 	private String length;//字段数量限制
 	private String partitionFormat;// 输出的文件目录名称格式 如tail={yyyy-MM-dd}
 	private Map<String, String> partitions;// 分区信息 key：log_date value:2013-03-12
 	private String tableName;// hive表名称
+	private String dbName;//库名称
 	private String extJarName;
+	private boolean isContinute;//表分区是否按照时间顺序
+	private String hdfs="hdfs://BJCER256-230.opi.com";//集群 默认是塞尔机器
 	@JsonInclude(Include.NON_NULL)
 	public static class FieldRule {
 		private String from;//原始字段下标位置索引 如果多个字段组合 那么以逗号分割 如2,3,4
@@ -133,6 +136,14 @@ public class RuleEngine implements Serializable {
 	public String getName() {
 		return name;
 	}
+	
+	public String getHdfs() {
+		return hdfs;
+	}
+
+	public void setHdfs(String hdfs) {
+		this.hdfs = hdfs;
+	}
 
 	public String getPartitionFormat() {
 		return partitionFormat;
@@ -178,11 +189,11 @@ public class RuleEngine implements Serializable {
 		this.createTime = createTime;
 	}
 
-	public String getReduceNum() {
+	public int getReduceNum() {
 		return reduceNum;
 	}
 
-	public void setReduceNum(String reduceNum) {
+	public void setReduceNum(int reduceNum) {
 		this.reduceNum = reduceNum;
 	}
 
@@ -201,5 +212,19 @@ public class RuleEngine implements Serializable {
 	public void setCron(String cron) {
 		this.cron = cron;
 	}
+	public boolean isContinute() {
+		return isContinute;
+	}
+	public void setContinute(boolean isContinute) {
+		this.isContinute = isContinute;
+	}
+	public String getDbName() {
+		return dbName;
+	}
+
+	public void setDbName(String dbName) {
+		this.dbName = dbName;
+	}
+
 
 }

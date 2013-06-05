@@ -13,13 +13,12 @@ import org.quartz.JobKey;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.quartz.SchedulerFactory;
+import org.quartz.SimpleScheduleBuilder;
 import org.quartz.Trigger;
 import org.quartz.TriggerBuilder;
 import org.quartz.TriggerKey;
 import org.quartz.core.jmx.JobDataMapSupport;
-import org.quartz.impl.DirectSchedulerFactory;
 import org.quartz.impl.StdSchedulerFactory;
-import org.quartz.SimpleScheduleBuilder;
 
 public class QuartzManager {
 
@@ -35,23 +34,29 @@ public class QuartzManager {
 	private static final String JOB_GROUP_NAME="TAILOR_JOBGROUP_NAME";
 
 	private static Scheduler schedule = null;
+	
+	public  static boolean isStart=false;
 
-	static {
-		try {
-			schedule = schedulerFactory.getScheduler();
-			schedule.start();
-			schedule.getListenerManager().addJobListener(mrJobListener);
-			schedule.getListenerManager().addTriggerListener(triggerListener);
-		} catch (SchedulerException e) {
-			e.printStackTrace();
-		}
-	}
-
+	
+	 public static void startQuartz(){
+	   if(!isStart){
+	     try {
+         schedule=schedulerFactory.getScheduler();
+         schedule.start();
+         schedule.getListenerManager().addJobListener(mrJobListener);
+         schedule.getListenerManager().addTriggerListener(triggerListener);
+         isStart=true;
+       } catch (SchedulerException e) {
+         e.printStackTrace();
+       }
+	   }
+	  }
 
 	public static void shutdownJobs() {
 		try {
 			if (!schedule.isShutdown()) {
 				schedule.shutdown();
+				isStart=false;
 			}
 		} catch (SchedulerException e) {
 			e.printStackTrace();
@@ -60,11 +65,13 @@ public class QuartzManager {
 
 	public static void scheduleCronJob(Class<? extends Job> jobClass,String jobKey,
 			 Map<String, Object> maps, String cron, Date startTime) {
+		if(null==startTime)startTime=new Date();
 		JobDetail job = createJob(jobClass,  jobKey, maps);
 		Trigger trigger = null;
 		if (cron.matches("[0-9]+")) {
 			trigger = createSimpleTrigger(Integer.parseInt(cron), jobKey, startTime);
 		} else {
+			cron=cron.replace(",", " ");
 			trigger = createCronTrigger(cron,  jobKey,startTime);
 		}
 		try {
@@ -80,10 +87,15 @@ public class QuartzManager {
 		Trigger trigger = TriggerBuilder
 				.newTrigger()
 				.startNow()
-				.withSchedule(
-						SimpleScheduleBuilder.simpleSchedule()
-								.withMisfireHandlingInstructionIgnoreMisfires())
 				.build();
+		try {
+			schedule.scheduleJob(job, trigger);
+		} catch (SchedulerException e) {
+			logger.error("once job error"+e.getMessage());
+			e.printStackTrace();
+		}
+		
+		/*
 		DirectSchedulerFactory factory = DirectSchedulerFactory.getInstance();
 		try {
 			factory.createVolatileScheduler(1);
@@ -95,7 +107,7 @@ public class QuartzManager {
 		} catch (SchedulerException e) {
 			e.printStackTrace();
 		}
-		
+		*/
 	}
 
 	public static JobDetail createJob(Class<? extends Job> jobClass,String jobKey,
@@ -125,7 +137,7 @@ public class QuartzManager {
 							SimpleScheduleBuilder
 									.simpleSchedule()
 									.withIntervalInMinutes(intervalInMinutes)
-									.withMisfireHandlingInstructionIgnoreMisfires())
+									.withMisfireHandlingInstructionIgnoreMisfires().repeatForever())
 					.build();
 		} else {
 			trigger = TriggerBuilder
@@ -135,7 +147,7 @@ public class QuartzManager {
 							SimpleScheduleBuilder
 									.simpleSchedule()
 									.withIntervalInMinutes(intervalInMinutes)
-									.withMisfireHandlingInstructionIgnoreMisfires())
+									.withMisfireHandlingInstructionIgnoreMisfires().repeatForever())
 					.build();
 		}
 		return trigger;

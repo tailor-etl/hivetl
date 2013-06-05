@@ -1,0 +1,1 @@
+{"cron":"0 53 16 ? * *","name":"wap_access","inputPath":"/xlog/3g/wap/access/{yyyy}/{yyyy-MM-dd}.bz2","outputPath":"/xlog/3g/wap/access/{yyyy}/{yyyy-MM-dd}.bz2","reduceNum":10,"partitions":{"log_date":"yyyy-MM-dd"},"tableName":"wap_access","dbName":"acorn_3g","hdfs":"hdfs://BJCER256-230.opi.com","local":false,"continute":false}

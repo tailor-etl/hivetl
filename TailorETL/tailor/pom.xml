@@ -27,6 +27,12 @@
   <version>1.3.170</version>
 </dependency>
 
+	<dependency>
+			<groupId>org.apache.zookeeper</groupId>
+			<artifactId>zookeeper</artifactId>
+			<version>3.3.4</version>
+		</dependency>
+
 		<dependency>
 			<groupId>com.renren</groupId>
 			<artifactId>tailor-processor</artifactId>
@@ -182,7 +188,6 @@
 					<skipTests>true</skipTests>
 				</configuration>
 			</plugin>
-<!-- 
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-dependency-plugin</artifactId>
@@ -199,7 +204,6 @@
 					</execution>
 				</executions>
 			</plugin>
-			-->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-assembly-plugin</artifactId>

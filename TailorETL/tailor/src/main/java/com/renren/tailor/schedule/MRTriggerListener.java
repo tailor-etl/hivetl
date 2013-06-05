@@ -56,9 +56,8 @@ public class MRTriggerListener extends TriggerListenerSupport {
 				.indexOf(rul) + rul.length() + 1));
 		RuleEngine rule = JaskSonUtil.readValueAsObjFromStr(
 				map.getString(ParameterUtil.RULE), RuleEngine.class);
-		
-		                       				
 		Map<String, String> patMap = rule.getPartitions();
+		
 		Iterator<Entry<String, String>> it = patMap.entrySet().iterator();
 		String out = "";
 		Map<String, String> result = new LinkedHashMap<String, String>();
@@ -66,16 +65,18 @@ public class MRTriggerListener extends TriggerListenerSupport {
 			Entry<String, String> en = it.next();
 			result.put(en.getKey(),
 					TimeUtil.getLastInfo(en.getValue(), patMap.size()));
-			out += en.getKey() + "="
-					+ TimeUtil.getLastInfo(en.getValue(), patMap.size()) + "/";
+		out += en.getKey() + "="+ TimeUtil.getLastInfo(en.getValue(), patMap.size()) + "/";
 		}
 		out = out.substring(0, out.length() - 1);
-		String outPutPath=rule.getOutputPath() + out;
-		rule.setOutputPath(outPutPath);
-		rule.setPartitions(result);
-		String inputPath=TimeUtil.getInputPath(rule.getInputPath(),new LinkedList<String>(patMap.values()));
-		rule.setInputPath(inputPath);
 		
+		if(rule.getFieldRule()==null || rule.getFieldRule().size()==0){//直接添加partition
+			rule.setOutputPath(TimeUtil.getInputPath(rule.getOutputPath(),new LinkedList<String>(patMap.values())));
+		}else{
+			String outPutPath=rule.getOutputPath() + out;
+			rule.setOutputPath(outPutPath);
+		}
+		rule.setPartitions(result);
+		rule.setInputPath(TimeUtil.getInputPath(rule.getInputPath(),new LinkedList<String>(patMap.values())));
 		try {
 			command[2]=command[2].substring(0,command[2].indexOf(rul)+rul.length())+" "+JaskSonUtil.getObjectMapper().writeValueAsString(rule);
 		} catch (JsonProcessingException e2) {
@@ -83,16 +84,17 @@ public class MRTriggerListener extends TriggerListenerSupport {
 		}
 		map.put(ParameterUtil.JOB_DATA_COMMAND, command);
 		
-		logger.info("vetoJobException...inputPath:"+inputPath+";outPutPath:"+outPutPath+";tablename:"+rule.getTableName());
+		logger.info("vetoJobException...inputPath:"+rule.getInputPath()+";outPutPath:"+rule.getOutputPath()+";tablename:"+rule.getTableName());
 		
 		map.put(ParameterUtil.RULE,rule);
 		
 		try {
 			if(DataPersisManager.checkJobRunned(rule.getTableName(), JaskSonUtil.getObjectMapper().writeValueAsString(result), 0)){
+				logger.info("has runned");
 				return true;
 			}
 		} catch (JsonProcessingException e) {
-			e.printStackTrace();
+			logger.info(e.getMessage());
 		}
 		
 		JobInfo info = new JobInfo();
@@ -103,33 +105,40 @@ public class MRTriggerListener extends TriggerListenerSupport {
 		map.put(ParameterUtil.JOB_INFO, info);
 		
 		
-		String[] inPath=inputPath.split(",");
+		String[] inPath=rule.getInputPath().split(",");
 		FileSystem fs = HDFSUtil.getFileSystem();
 		for(String p:inPath){
 			try {
-				if (!rule.isLocal() && !fs.exists(new Path(p))){
+				if (!rule.isLocal() && !fs.exists(new Path(p)) && (rule.getFieldRule()!=null && rule.getFieldRule().size()>0) ){
 					map.put(ParameterUtil.PATH_ERROR, ParameterUtil.ErrorCode.INPUT_PATH_NOTEXIST);
+					logger.info("file not exist");
 					return true;
 				}
 			} catch (IOException e) {
 				map.put(ParameterUtil.PATH_ERROR, ParameterUtil.ErrorCode.INPUT_PATH_NOTEXIST);
+				logger.info("file not exist"+e.getMessage()+" error!");
 				return true;
 			}
 		}
 		try {
-			if(fs.exists(new Path(outPutPath))){
+			if((rule.getFieldRule()!=null && rule.getFieldRule().size()>0) && fs.exists(new Path(rule.getOutputPath()))){
 				map.put(ParameterUtil.PATH_ERROR, ParameterUtil.ErrorCode.OUTPUT_PATH_EXIST);
+				logger.info("output file  exist");
 				return true;
 			}
 		} catch (IOException e) {
 			map.put(ParameterUtil.PATH_ERROR, ParameterUtil.ErrorCode.OUTPUT_PATH_EXIST);
+			logger.info("out file not exist"+e.getMessage()+" error!");
 			return true;
 		}
 		
-		if (RUNNING_JOB.get(rule.getTableName() + outPutPath) != null)
+		if (RUNNING_JOB.get(rule.getTableName() + rule.getOutputPath()) != null){
+			logger.info("正在运行...");
 			return true;
+		}
+			
 		
-		RUNNING_JOB.put(rule.getTableName() + outPutPath, rule.getTableName());
+		RUNNING_JOB.put(rule.getTableName() + rule.getOutputPath(), rule.getTableName());
 		return false;
 	}
 	

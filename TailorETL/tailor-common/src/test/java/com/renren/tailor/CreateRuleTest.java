@@ -27,15 +27,16 @@ public class CreateRuleTest {
 	public void creatTest() throws JsonGenerationException, JsonMappingException, IOException{
 		partitions.put("log_date", "yyyy-MM-dd");
 		en.setPartitions(partitions);
-		List<Map<String,String>> ll=new ArrayList<Map<String,String>>();
-		ll.add(partitions);
-		List<LinkedHashMap<String, String>> partions = JaskSonUtil.getObjectMapper().readValue("[{\"log_date\":\"2013-04-01\"}]", List.class);
-		System.out.println(partions);
-//		en.setCron("10");
-//        en.setName("ugcaction");
-//		en.setTableName("ugcaction");
-//		en.setInputPath("/warehouse/ugc_action_raw/log_date={yyyy-MM-dd}/{yyyy-MM-dd}.bz2");
-//		en.setOutputPath("/user/xianbing.liu/tmp/ugcaction/");
+//		List<Map<String,String>> ll=new ArrayList<Map<String,String>>();
+//		ll.add(partitions);
+//		List<LinkedHashMap<String, String>> partions = JaskSonUtil.getObjectMapper().readValue("[{\"log_date\":\"2013-04-01\"}]", List.class);
+//		System.out.println(partions);
+		en.setCron("0 53 16 ? * *");
+        en.setName("wap_access");
+		en.setTableName("wap_access");
+		en.setInputPath("/xlog/3g/wap/access/{yyyy}/{yyyy-MM-dd}.bz2");
+		en.setOutputPath("/xlog/3g/wap/access/{yyyy}/{yyyy-MM-dd}.bz2");
+		en.setDbName("acorn_3g");
 //		en.setLength("4");
 //		en.setSplit("\\|");
 //		List<FieldRule> ll=new LinkedList<RuleEngine.FieldRule>();
@@ -49,7 +50,9 @@ public class CreateRuleTest {
 //		ruleMaps.put("java_method", ls);
 //		ll.add(assemField("3", null, ruleMaps, null));
 //		en.setFieldRule(ll);
-//		JaskSonUtil.getObjectMapper().writeValue(new File("ugcaction.json"), en);
+		//JaskSonUtil.getObjectMapper().writeValue(new File("wap_access.json"), en);
+		RuleEngine aa= JaskSonUtil.getObjectMapper().readValue(new File("wap_access.json"), RuleEngine.class);
+		System.out.println(aa.getCron());
 	}
 	
 	public  FieldRule assemField(String i,String requires,Map<String, List<String>> ruleMaps,String replace){
