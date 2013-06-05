@@ -8,7 +8,10 @@ import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.PosixParser;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.NullWritable;
@@ -24,6 +27,7 @@ import org.apache.hadoop.util.GenericOptionsParser;
 import com.renren.tailor.model.RuleEngine;
 import com.renren.tailor.util.JaskSonUtil;
 import com.renren.tailor.util.ParameterUtil;
+import com.renren.tailor.util.PropertiesUtil;
 
 /**
  * lanuach mapreduce job mr job frame
@@ -33,25 +37,38 @@ import com.renren.tailor.util.ParameterUtil;
  */
 public class ExecDriver {
 
+	private static Log logger = LogFactory.getLog(ExecDriver.class) ;
+	
 	private static Job job;
+	private static RuleEngine rule ;
 	private static Configuration conf = new Configuration();
 
 	public static void main(String[] args) throws Exception {
 		String[] otherArgs = new GenericOptionsParser(conf, args)
 				.getRemainingArgs();
+		for(String s:otherArgs){
+			logger.info("loop string:"+s);
+		}
 		HashMap<String, String> params = getJobParameters(otherArgs);
-		execute(params.get(ParameterUtil.RULE), conf);
+		logger.info("message:"+params.get(ParameterUtil.RULE)+"#end");
+		 rule = JaskSonUtil.getObjectMapper().readValue(params.get(ParameterUtil.RULE),
+				RuleEngine.class);
+		conf.set(ParameterUtil.RULE_INFO, params.get(ParameterUtil.RULE));
+		if(rule.getFieldRule()==null || rule.getFieldRule().size()==0){//如果没有对列过滤的需求
+		}else{
+			execute();
+		}
 	}
 
-	private static void execute(String rules, Configuration conf)
+	private static void execute()
 			throws Exception {
-		RuleEngine rule = JaskSonUtil.getObjectMapper().readValue(rules,
-				RuleEngine.class);
 		try {
+			conf.setStrings("fs.default.name", rule.getHdfs());
+		    conf.setStrings(FileSystem.FS_DEFAULT_NAME_KEY,rule.getHdfs());
 			conf.setBoolean("mapred.output.compress", true);
 			conf.setClass("mapred.output.compression.codec", BZip2Codec.class,
 					CompressionCodec.class);
-			conf.set(ParameterUtil.RULE_INFO, rules);
+			
 			Cluster cluster = new Cluster(conf);
 			job = Job.getInstance(cluster, conf);
 
@@ -65,8 +82,8 @@ public class ExecDriver {
 			job.setMapOutputValueClass(Text.class);
 			job.setOutputKeyClass(NullWritable.class);
 			job.setOutputValueClass(Text.class);
-			if (StringUtils.isNotBlank(rule.getReduceNum())) {
-				job.setNumReduceTasks(Integer.valueOf(rule.getReduceNum()));
+			if (rule.getReduceNum()>0) {
+				job.setNumReduceTasks(rule.getReduceNum());
 			}
 			Path[] inPaths = null;
 			String[] ip = rule.getInputPath().split(",");
