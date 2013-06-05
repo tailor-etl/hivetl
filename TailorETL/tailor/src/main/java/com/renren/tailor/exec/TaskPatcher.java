@@ -53,11 +53,11 @@ public class TaskPatcher{
 				List<Map<String, String>> map=TailorUtil.getFailedTask(HiveMetaStore.getPatchPartitions(ru));
 				errorJob.put(ru.getTableName(), getDeathJob(map,ru.getTableName()));
 				if(map.size()>0){
-					String[] args=new String[2];
-					args[0]=ru.getName();
-					args[1]=JaskSonUtil.getObjectMapper().writeValueAsString(map);
+//					String[] args=new String[2];
+//					args[0]=ru.getName();
+//					args[1]=JaskSonUtil.getObjectMapper().writeValueAsString(map);
 					logger.info("inner thread:"+ru.toString()+map.toString());
-					Main.main(args);
+					Main.startByName(ru.getName(), JaskSonUtil.getObjectMapper().writeValueAsString(map));
 					Thread.sleep(10000);//10s后再执行
 				}
 			}
