@@ -79,53 +79,6 @@ public class MRJobListener extends JobListenerSupport {
 
 	@Override
 	public void jobToBeExecuted(JobExecutionContext context) {
-		// JobDataMap map = context.getMergedJobDataMap();
-		// String[] command = (String[])
-		// map.get(ParameterUtil.JOB_DATA_COMMAND);
-		// String rul="-"+ParameterUtil.RULE;
-		// map.put(ParameterUtil.RULE,
-		// command[2].substring(command[2].indexOf(rul)+rul.length()+1));
-		// RuleEngine
-		// rule=JaskSonUtil.readValueAsObjFromStr(map.getString(ParameterUtil.RULE),
-		// RuleEngine.class);
-		//
-		// Map<String, String> patMap = rule.getPartitions();
-		// Iterator<Entry<String, String>> it = patMap.entrySet().iterator();
-		// String out = "";
-		// Map<String, String> result = new LinkedHashMap<String, String>();
-		// while (it.hasNext()) {
-		// Entry<String, String> en = it.next();
-		// result.put(en.getKey(),
-		// TimeUtil.getLastInfo(en.getValue(), patMap.size()));
-		// out += en.getKey() + "="
-		// + TimeUtil.getLastInfo(en.getValue(), patMap.size()) + "/";
-		// }
-		// out = out.substring(0, out.length() - 1);
-		// rule.setOutputPath(rule.getOutputPath()+ out);
-		// rule.setPartitions(result);
-		// rule.setInputPath(TimeUtil.getInputPath(rule.getInputPath()));
-		//
-		// try {
-		// boolean flag=DataPersisManager.checkJobRunned(rule.getTableName(),
-		// JaskSonUtil.getObjectMapper().writeValueAsString(result), 0);
-		// map.put(ParameterUtil.JOB_RUNNED, flag);
-		// } catch (JsonProcessingException e) {
-		// e.printStackTrace();
-		// }
-		// //String inputPath = TimeUtil.getInputPath(rule.getInputPath());
-		//
-		// if(RUNNING_JOB.get(rule.getTableName())!=null){//有作业正在运行
-		// map.put(ParameterUtil.JOB_RUNNING, true);
-		// logger.info("上一个作业正在运行..."+rule.getTableName());
-		// }else{
-		// map.put(ParameterUtil.JOB_RUNNING, false);
-		// RUNNING_JOB.put(rule.getTableName(), rule.getTableName());
-		// }
-		// JobInfo info = new JobInfo();
-		// info.setStartTime(TimeUtil.formatFromUtcTime(new
-		// Date().getTime()+"",null));
-		// info.setPartitions(result);
-		// map.put(ParameterUtil.JOB_INFO, info);
 	}
 
 	@Override
@@ -142,33 +95,6 @@ public class MRJobListener extends JobListenerSupport {
 		if (result == 0) {
 			logger.info("result is:"+result);
 			result=HiveMetaStore.alterTable(engine);
-//			Iterator<Entry<String, String>> it = partitionMap.entrySet()
-//					.iterator();
-//			String sql = "alter table " + engine.getTableName()
-//					+ " add partition (";
-//			List<String> list = new ArrayList<String>();
-//			while (it.hasNext()) {
-//				Entry<String, String> en = it.next();
-//				list.add(en.getKey() + "=" + en.getValue());
-//				sql += en.getKey() + "='" + en.getValue() + "',";
-//			}
-//			sql = sql.substring(0, sql.length() - 1);
-//			String location = "";
-//			if(engine.getFieldRule()!=null && engine.getFieldRule().size()>0){
-//				for (String s : list) {
-//					location += s + "/";
-//				}
-//				location = location.substring(0, location.length() - 1);
-//			}
-//			sql += ") location '" + engine.getOutputPath() + location + "'";
-//			logger.info(sql);
-//			try {
-//				HiveMetaStore.alterPartition(sql,engine.getDbName());
-//			} catch (SQLException e) {
-//				e.printStackTrace();
-//				logger.error(e.getMessage() + " alter table error " + sql);
-//				result = ParameterUtil.ErrorCode.ALTER_TABLE_ERROR;
-//			}
 		}
 		info.setResult(result);
 		try {
